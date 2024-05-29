@@ -1,9 +1,9 @@
-import 'package:port_audio/port_audio.dart';
-
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+
+import 'port_audio.dart';
 
 const sampleRate = 44100.0;
 const numSeconds = 5;
@@ -17,7 +17,7 @@ void start () {
   var result = PortAudio.initialize();
   checkForError('initialize', result);
 
-  stream = Pointer<Pointer<Void>>.fromAddress(allocate<IntPtr>().address);
+  stream = Pointer<Pointer<Void>>.fromAddress(calloc.allocate<IntPtr>(32).address);
 
   Isolate.spawn(streamRequestProcessing, 0);
 
@@ -30,8 +30,8 @@ void start () {
   result = PortAudio.closeStream(stream);
   checkForError('closeStream', result);
 
-  free(stream.value);
-  free(stream);
+  calloc.free(stream.value);
+  calloc.free(stream);
 
   PortAudio.terminate();
   checkForError('terminate', result);
@@ -46,9 +46,9 @@ void checkForError (String text, int result) {
 }
 
 void streamRequestProcessing(var param) {    
-  var stream = Pointer<Pointer<Void>>.fromAddress(allocate<IntPtr>().address);
+  var stream = Pointer<Pointer<Void>>.fromAddress(calloc.allocate<IntPtr>(32).address);
   var receivePort = ReceivePort();
-  
+
   var result = PortAudio.openDefaultStream(
       stream,
       0, /* no input channels */
@@ -74,8 +74,9 @@ void streamRequestProcessing(var param) {
   receivePort.listen((message) {
     final translatedMessage = MessageTranslator(message);
     final messageType = translatedMessage.messageType;
-    final outputPointer = translatedMessage.outputPointer.cast<Float>();
-    final frameCount = translatedMessage.frameCount;
+    final outputPointer = translatedMessage.outputPointer!.cast<Float>();
+    final frameCount = translatedMessage.frameCount!;
+    print("Processing");
 
     for(var i=0; messageType == MessageTranslator.messageTypeCallback && i < frameCount; i++) {
       outputPointer[(i * 2) + 0] = leftPhase; 

@@ -3,6 +3,7 @@
 ///
 library port_audio;
 
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:isolate';
@@ -15,25 +16,25 @@ class PortAudio {
   static bool _loaded = false;
   
   // Port Audio Helper Library
-  static int Function(void) _PaGetVersion;
-  static Pointer<Utf8> Function(void) _PaGetVersionText;
-  static Pointer<VersionInfo> Function(void) _PaGetVersionInfo;
-  static Pointer<Utf8> Function(int) _PaGetErrorText;
-  static int Function(void) _PaInitialize;
-  static int Function(void) _PaTerminate;
-  static int Function(void) _PaGetHostApiCount;
-  static int Function(void) _PaGetDefaultHostApi;
-  static Pointer<HostApiInfo> Function(int) _PaGetHostApiInfo;
-  static int Function(int) _PaHostApiTypeIdToHostApiIndex;
-  static int Function(int, int) _PaHostApiDeviceIndexToDeviceIndex;
-  static Pointer<HostErrorInfo> Function(void) _PaGetLastHostErrorInfo;
-  static int Function(void) _PaGetDeviceCount;
-  static int Function(void) _PaGetDefaultInputDevice;
-  static int Function(void) _PaGetDefaultOutputDevice;
-  static Pointer<DeviceInfo> Function(int) _PaGetDeviceInfo;
-  static int Function(Pointer<StreamParameters>, Pointer<StreamParameters>, double)
+  static late int Function(Pointer<Void>) _PaGetVersion;
+  static late Pointer<Utf8> Function(Pointer<Void>) _PaGetVersionText;
+  static late Pointer<VersionInfo> Function(Pointer<Void>) _PaGetVersionInfo;
+  static late Pointer<Utf8> Function(int) _PaGetErrorText;
+  static late int Function(Pointer<Void>) _PaInitialize;
+  static late int Function(Pointer<Void>) _PaTerminate;
+  static late int Function(Pointer<Void>) _PaGetHostApiCount;
+  static late int Function(Pointer<Void>) _PaGetDefaultHostApi;
+  static late Pointer<HostApiInfo> Function(int) _PaGetHostApiInfo;
+  static late int Function(int) _PaHostApiTypeIdToHostApiIndex;
+  static late int Function(int, int) _PaHostApiDeviceIndexToDeviceIndex;
+  static late Pointer<HostErrorInfo> Function(Pointer<Void>) _PaGetLastHostErrorInfo;
+  static late int Function(Pointer<Void>) _PaGetDeviceCount;
+  static late int Function(Pointer<Void>) _PaGetDefaultInputDevice;
+  static late int Function(Pointer<Void>) _PaGetDefaultOutputDevice;
+  static late Pointer<DeviceInfo> Function(int) _PaGetDeviceInfo;
+  static late int Function(Pointer<StreamParameters>, Pointer<StreamParameters>, double)
       _PaIsFormatSupported;
-  static int Function(
+  static late int Function(
       Pointer<Pointer<Void>>,
       Pointer<StreamParameters>,
       Pointer<StreamParameters>,
@@ -42,7 +43,7 @@ class PortAudio {
       int,
       Pointer<NativeFunction<StreamCallback>>,
       Pointer<Void>) _PaOpenStream;
-  static int Function(
+  static late int Function(
       Pointer<Pointer<Void>>,
       int,
       int,
@@ -51,28 +52,30 @@ class PortAudio {
       int,
       Pointer<NativeFunction<StreamCallback>>,
       Pointer<Void>) _PaOpenDefaultStream;
-  static int Function(Pointer<Void>) _PaCloseStream;
-  static int Function(Pointer<Void>, Pointer<NativeFunction<StreamFinishedCallback>>)
+  static late int Function(Pointer<Void>) _PaCloseStream;
+  static late int Function(Pointer<Void>, Pointer<NativeFunction<StreamFinishedCallback>>)
       _PaSetStreamFinishedCallback;
-  static int Function(Pointer<Void>) _PaStartStream;
-  static int Function(Pointer<Void>) _PaStopStream;
-  static int Function(Pointer<Void>) _PaAbortStream;
-  static int Function(Pointer<Void>) _PaIsStreamStopped;
-  static int Function(Pointer<Void>) _PaIsStreamActive;
-  static Pointer<StreamInfo> Function(Pointer<Void>) _PaGetStreamInfo;
-  static double Function(Pointer<Void>) _PaGetStreamTime;
-  static double Function(Pointer<Void>) _PaGetStreamCpuLoad;
-  static int Function(Pointer<Void>, Pointer<Void>, int) _PaReadStream;
-  static int Function(Pointer<Void>, Pointer<Void>, int) _PaWriteStream;
-  static int Function(Pointer<Void>) _PaGetStreamReadAvailable;
-  static int Function(Pointer<Void>) _PaGetStreamWriteAvailable;
-  static int Function(int) _PaGetSampleSize;
-  static void Function(int) _PaSleep;
+  static late int Function(Pointer<Void>) _PaStartStream;
+  static late int Function(Pointer<Void>) _PaStopStream;
+  static late int Function(Pointer<Void>) _PaAbortStream;
+  static late int Function(Pointer<Void>) _PaIsStreamStopped;
+  static late int Function(Pointer<Void>) _PaIsStreamActive;
+  static late Pointer<StreamInfo> Function(Pointer<Void>) _PaGetStreamInfo;
+  static late double Function(Pointer<Void>) _PaGetStreamTime;
+  static late double Function(Pointer<Void>) _PaGetStreamCpuLoad;
+  static late int Function(Pointer<Void>, Pointer<Void>, int) _PaReadStream;
+  static late int Function(Pointer<Void>, Pointer<Void>, int) _PaWriteStream;
+  static late int Function(Pointer<Void>) _PaGetStreamReadAvailable;
+  static late int Function(Pointer<Void>) _PaGetStreamWriteAvailable;
+  static late int Function(int) _PaGetSampleSize;
+  static late void Function(int) _PaSleep;
 
   // Port Audio Helper Library
-  static Pointer<NativeFunction<StreamCallback>> Function(int) _PahGetStreamCallback;
-  static void Function(int) _PahSetStreamResult;
-  static Pointer<NativeFunction<StreamFinishedCallback>> Function(int) _PahGetStreamFinishedCallback;
+  static late Pointer<NativeFunction<StreamCallback>> Function(int) _PahGetStreamCallback;
+  static late void Function(int) _PahSetStreamResult;
+  static late Pointer<NativeFunction<StreamFinishedCallback>> Function(int) _PahGetStreamFinishedCallback;
+
+  // Callbacks
   
   ///
   /// Contructor loads the library and looks up functions
@@ -89,9 +92,9 @@ class PortAudio {
 
     // Port Audio Library ----------------------------------------------------
 
-    var paPath = '';
+    String paPath = '';
     if (Platform.environment['PORT_AUDIO_LIBRARY'] != null) {
-      paPath = Platform.environment['PORT_AUDIO_LIBRARY'];
+      paPath = Platform.environment['PORT_AUDIO_LIBRARY']!;
     } else if (Platform.isWindows) {
       paPath = 'native/windows/portaudio_' + bits + '.dll';
     } else if (Platform.isMacOS) {
@@ -103,19 +106,20 @@ class PortAudio {
           'PortAudio: Unsupported platform, try specifying environment variable PORT_AUDIO_LIBRARY');
     }
 
+    paPath = "/usr/lib/libportaudio.so";
     final paLib = DynamicLibrary.open(paPath);
 
     _PaGetVersion = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_GetVersion')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_GetVersion')
         .asFunction();
 
     _PaGetVersionText = paLib
-        .lookup<NativeFunction<Pointer<Utf8> Function(Void)>>(
+        .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<Void>)>>(
             'Pa_GetVersionText')
         .asFunction();
 
     _PaGetVersionInfo = paLib
-        .lookup<NativeFunction<Pointer<VersionInfo> Function(Void)>>(
+        .lookup<NativeFunction<Pointer<VersionInfo> Function(Pointer<Void>)>>(
             'Pa_GetVersionInfo')
         .asFunction();
 
@@ -125,19 +129,19 @@ class PortAudio {
         .asFunction();
 
     _PaInitialize = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_Initialize')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_Initialize')
         .asFunction();
 
     _PaTerminate = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_Terminate')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_Terminate')
         .asFunction();
 
     _PaGetHostApiCount = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_GetHostApiCount')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_GetHostApiCount')
         .asFunction();
 
     _PaGetDefaultHostApi = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_GetDefaultHostApi')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_GetDefaultHostApi')
         .asFunction();
 
     _PaGetHostApiInfo = paLib
@@ -156,21 +160,21 @@ class PortAudio {
         .asFunction();
 
     _PaGetLastHostErrorInfo = paLib
-        .lookup<NativeFunction<Pointer<HostErrorInfo> Function(Void)>>(
+        .lookup<NativeFunction<Pointer<HostErrorInfo> Function(Pointer<Void>)>>(
             'Pa_GetLastHostErrorInfo')
         .asFunction();
 
     _PaGetDeviceCount = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>('Pa_GetDeviceCount')
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>('Pa_GetDeviceCount')
         .asFunction();
 
     _PaGetDefaultInputDevice = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>(
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>(
             'Pa_GetDefaultInputDevice')
         .asFunction();
 
     _PaGetDefaultOutputDevice = paLib
-        .lookup<NativeFunction<Int32 Function(Void)>>(
+        .lookup<NativeFunction<Int32 Function(Pointer<Void>)>>(
             'Pa_GetDefaultOutputDevice')
         .asFunction();
 
@@ -299,7 +303,7 @@ class PortAudio {
 
     var pahPath = '';
     if (Platform.environment['PORT_AUDIO_HELPER_LIBRARY'] != null) {
-      pahPath = Platform.environment['PORT_AUDIO_HELPER_LIBRARY'];
+      pahPath = Platform.environment['PORT_AUDIO_HELPER_LIBRARY']!;
     } else if (Platform.isWindows) {
       pahPath = 'native/windows/port_audio_helper_' + bits + '.dll';
     } else if (Platform.isMacOS) {
@@ -311,6 +315,7 @@ class PortAudio {
           'PortAudio: Unsupported platform, try specifying environment variable PORT_AUDIO_HELPER_LIBRARY');
     }
 
+    pahPath = "lib/libport_audio.so";
     final pahLib = DynamicLibrary.open(pahPath);
 
     _PahGetStreamCallback = pahLib
@@ -337,7 +342,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetVersion(Void);
+    return _PaGetVersion(nullptr);
   }
 
   ///
@@ -354,8 +359,8 @@ class PortAudio {
       _load();
     }
 
-    var textPtr = _PaGetVersionText(Void);
-    return Utf8.fromUtf8(textPtr);
+    var textPtr = _PaGetVersionText(nullptr);
+    return textPtr.toDartString();
   }
 
   ///
@@ -372,7 +377,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetVersionInfo(Void).ref;
+    return _PaGetVersionInfo(nullptr).ref;
   }
 
   ///
@@ -385,7 +390,7 @@ class PortAudio {
     }
 
     var textPtr = _PaGetErrorText(errorCode);
-    return Utf8.fromUtf8(textPtr);
+    return textPtr.toDartString();
   }
 
   ///
@@ -412,7 +417,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaInitialize(Void);
+    return _PaInitialize(nullptr);
   }
 
   /// Library termination function - call this when finished using PortAudio.
@@ -436,7 +441,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaTerminate(Void);
+    return _PaTerminate(nullptr);
   }
 
   ///
@@ -452,7 +457,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetHostApiCount(Void);
+    return _PaGetHostApiCount(nullptr);
   }
 
   ///
@@ -469,7 +474,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetDefaultHostApi(Void);
+    return _PaGetDefaultHostApi(nullptr);
   }
 
   ///
@@ -561,7 +566,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetLastHostErrorInfo(Void).ref;
+    return _PaGetLastHostErrorInfo(nullptr).ref;
   }
 
   ///
@@ -577,7 +582,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetDeviceCount(Void);
+    return _PaGetDeviceCount(nullptr);
   }
 
   ///
@@ -591,7 +596,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetDefaultInputDevice(Void);
+    return _PaGetDefaultInputDevice(nullptr);
   }
 
   ///
@@ -613,7 +618,7 @@ class PortAudio {
       _load();
     }
 
-    return _PaGetDefaultOutputDevice(Void);
+    return _PaGetDefaultOutputDevice(nullptr);
   }
 
   ///
@@ -656,8 +661,8 @@ class PortAudio {
   /// the format is not supported otherwise. The constant formatIsSupported is
   /// provided to compare with the return value for success.
   ///
-  static int isFormatSupported(Pointer<StreamParameters> inputParameters,
-      Pointer<StreamParameters> outputParameters, double sampleRate) {
+  static int isFormatSupported(Pointer<StreamParameters>? inputParameters,
+      Pointer<StreamParameters>? outputParameters, double sampleRate) {
     if (! _loaded) {
       _load();
     }
@@ -723,16 +728,17 @@ class PortAudio {
       double sampleRate,
       int framesPerBuffer,
       int streamFlags,
-      SendPort sendPort,
+      SendPort? sendPort,
       Pointer<Void> userData) {
     
     if (! _loaded) {
       _load();
     }
 
-    var streamCallback = nullptr;
+    Pointer<NativeFunction<StreamCallback>> streamCallback = nullptr;
     if (sendPort != null) {
       streamCallback = _PahGetStreamCallback(sendPort.nativePort);
+
     }
 
     return _PaOpenStream(
@@ -781,8 +787,8 @@ class PortAudio {
       int sampleFormat,
       double sampleRate,
       int framesPerBuffer,
-      SendPort sendPort,
-      Pointer<Void> userData) {
+      SendPort? sendPort,
+      Pointer<Void>? userData) {
     
     if (! _loaded) {
       _load();
@@ -790,8 +796,6 @@ class PortAudio {
 
     var streamCallback ;
     if (sendPort != null) {
-      var value = sendPort.nativePort;
-      print (value);
       streamCallback = _PahGetStreamCallback(sendPort.nativePort);
     } else {
       streamCallback = nullptr;
@@ -850,7 +854,7 @@ class PortAudio {
   /// of the error.
   ///
   static int setStreamFinishedCallback(Pointer<Pointer<Void>> stream,
-                                       SendPort sendPort) {
+                                       SendPort? sendPort) {
     if (! _loaded) {
       _load();
     }
@@ -1280,36 +1284,36 @@ class StreamFlags {
 /// A structure containing PortAudio API version information.
 /// see GetVersionInfo
 ///
-class VersionInfo extends Struct {
+final class VersionInfo extends Struct {
   @Int32()
-  int versionMajor;
+  external int versionMajor;
 
   @Int32()
-  int versionMinor;
+  external int versionMinor;
 
   @Int32()
-  int versionSubMinor;
+  external int versionSubMinor;
 
   ///
   /// This is currently the Git revision hash but may change in the future.
   /// The versionControlRevision is updated by running a script before compiling the library.
   /// If the update does not occur, this value may refer to an earlier revision.
   ///
-  Pointer<Utf8> _versionControlRevision;
+  external Pointer<Utf8> _versionControlRevision;
 
   ///
   /// Version as a string, for example "PortAudio V19.5.0-devel, revision 1952M" */
   ///
-  Pointer<Utf8> _versionText;
+  external Pointer<Utf8> _versionText;
 }
 
 extension VersionInfoExtension on VersionInfo {  
   String get versionControlRevision {
-    return Utf8.fromUtf8(_versionControlRevision);
+    return _versionControlRevision.toDartString();
   }
 
   String get versionText {
-    return Utf8.fromUtf8(_versionText);
+    return _versionText.toDartString();
   }
 }
 
@@ -1386,62 +1390,62 @@ class HostApiTypeId {
 ///
 /// A structure containing information about a particular host API.
 ///
-class HostApiInfo extends Struct {
+final class HostApiInfo extends Struct {
   /// this is struct version 1
   @Int32()
-  int structVersion;
+  external int structVersion;
 
   /// The well known unique identifier of this host API
   @Int32()
-  int type;
+  external int type;
 
   /// A textual description of the host API for display on user interfaces.
-  Pointer<Utf8> _name;
+  external Pointer<Utf8> _name;
 
   /// The number of devices belonging to this host API. This field may be
   /// used in conjunction with HostApiDeviceIndexToDeviceIndex() to enumerate
   /// all devices for this host API.
   @Int32()
-  int deviceCount;
+  external int deviceCount;
 
   /// The default input device for this host API. The value will be a
   /// device index ranging from 0 to (GetDeviceCount()-1), or paNoDevice
   /// if no default input device is available.
   @Int32()
-  int defaultInputDevice;
+  external int defaultInputDevice;
 
   /// The default output device for this host API. The value will be a
   /// device index ranging from 0 to (GetDeviceCount()-1), or paNoDevice
   /// if no default output device is available.
   @Int32()
-  int defaultOutputDevice;
+  external int defaultOutputDevice;
 }
 
 extension HostApiInfoExtension on HostApiInfo {  
   String get name {
-    return Utf8.fromUtf8(_name);
+    return _name.toDartString();
   }
 }
 
 ///
 /// Structure used to return information about a host error condition.
 ///
-class HostErrorInfo extends Struct {
+final class HostErrorInfo extends Struct {
   /// The host API which returned the error code
   @Int32()
-  int hostApiType;
+  external int hostApiType;
 
   /// The error code returned
   @Int32()
-  int errorCode;
+  external int errorCode;
 
   /// A textual description of the error if available, otherwise a zero-length string
-  Pointer<Utf8> _errorText;
+  external Pointer<Utf8> _errorText;
 }
 
 extension HostErrorInfoExtension on HostErrorInfo {  
   String get errorText {
-    return Utf8.fromUtf8(_errorText);
+    return _errorText.toDartString();
   }
 }
 
@@ -1449,73 +1453,73 @@ extension HostErrorInfoExtension on HostErrorInfo {
 /// A structure providing information and capabilities of PortAudio devices.
 /// Devices may support input, output or both input and output.
 ///
-class DeviceInfo extends Struct {
+final class DeviceInfo extends Struct {
   /// This is struct version 2
   @Int32()
-  int structVersion;
+  external int structVersion;
 
   /// A textual description of the error if available, otherwise a zero-length string
-  Pointer<Utf8> _name;
+  external Pointer<Utf8> _name;
 
   /// Note this is a host API index, not a type id
   @Int32()
-  int hostApi;
+  external int hostApi;
 
   @Int32()
-  int maxInputChannels;
+  external int maxInputChannels;
 
   @Int32()
-  int maxOutputChannels;
+  external int maxOutputChannels;
 
   /// Default latency values for interactive performance.
   @Double()
-  double defaultLowInputLatency;
+  external double defaultLowInputLatency;
 
   @Double()
-  double defaultLowOutputLatency;
+  external double defaultLowOutputLatency;
 
   /// Default latency values for robust non-interactive applications (eg. playing sound files).
   @Double()
-  double defaultHighInputLatency;
+  external double defaultHighInputLatency;
 
   @Double()
-  double defaultHighOutputLatency;
+  external double defaultHighOutputLatency;
 
   @Double()
-  double defaultSampleRate;
+  external double defaultSampleRate;
 }
 
 extension DeviceInfoExtension on DeviceInfo {  
 
   String get name {
-    return Utf8.fromUtf8(_name);
+    return _name.toDartString();
   }
 }
 
 ///
 /// Parameters for one direction (input or output) of a stream.
 ///
-class StreamParameters extends Struct {
+final class StreamParameters extends Struct {
   /// A valid device index in the range 0 to (GetDeviceCount()-1)
   /// specifying the device to be used or the special constant
   /// paUseHostApiSpecificDeviceSpecification which indicates that the actual
   /// device(s) to use are specified in hostApiSpecificStreamInfo.
   /// This field must not be set to paNoDevice.
   @Int32()
-  int device;
+  external int device;
 
   /// The number of channels of sound to be delivered to the
   /// stream callback or accessed by ReadStream() or WriteStream().
   /// It can range from 1 to the value of maxInputChannels in the
   /// PaDeviceInfo record for the device specified by the device parameter.
   @Int32()
-  int channelCount;
+  external int channelCount;
 
   /// The sample format of the buffer provided to the stream callback,
   /// ReadStream() or WriteStream(). It may be any of the formats described
   /// by the PaSampleFormat enumeration.
   @Int32()
-  int sampleFormat;
+  external int sampleFormat;
 
   /// The desired latency in seconds. Where practical, implementations should
   /// configure their latency based on these parameters, otherwise they may
@@ -1527,13 +1531,13 @@ class StreamParameters extends Struct {
   /// inputLatency and outputLatency fields of the PaStreamInfo structure
   /// returned by GetStreamInfo().
   @Double()
-  double suggestedLatency;
+  external double suggestedLatency;
 
   /// An optional pointer to a host api specific data structure
   /// containing additional information for device setup and/or stream processing.
   /// hostApiSpecificStreamInfo is never required for correct operation,
   /// if not used it should be set to NULL.
-  Pointer<Void> hostApiSpecificStreamInfo;
+  external Pointer<Void> hostApiSpecificStreamInfo;
 }
 
 ///
@@ -1541,18 +1545,18 @@ class StreamParameters extends Struct {
 ///
 /// Time values are expressed in seconds and are synchronised with the time base used by GetStreamTime() for the associated stream.
 ///
-class StreamCallbackTimeInfo extends Struct {
+final class StreamCallbackTimeInfo extends Struct {
   /// The time when the first sample of the input buffer was captured at the ADC input
   @Double()
-  double inputBufferAdcTime;
+  external double inputBufferAdcTime;
 
   /// The time when the stream callback was invoked
   @Double()
-  double currentTime;
+  external double currentTime;
 
   /// The time when the first sample of the output buffer will output the DAC
   @Double()
-  double outputBufferDacTime;
+  external double outputBufferDacTime;
 }
 
 ///
@@ -1652,13 +1656,13 @@ class MessageTranslator {
   static const int messageTypeFinish = 0;
   static const int messageTypeCallback = 1;  
   
-  int messageType;
-  Pointer<Void> inputPointer;
-  Pointer<Void> outputPointer;
-  int frameCount;
-  Pointer<StreamCallbackTimeInfo> streamCallbackTimeInfo;
-  int statusFlags;
-  Pointer<Void> userData;
+  int? messageType;
+  Pointer<Void>? inputPointer;
+  Pointer<Void>? outputPointer;
+  int? frameCount;
+  Pointer<StreamCallbackTimeInfo>? streamCallbackTimeInfo;
+  int? statusFlags;
+  Pointer<Void>? userData;
   
   MessageTranslator(dynamic message) {
     messageType = message[0];
@@ -1695,24 +1699,24 @@ typedef StreamFinishedCallback = Void Function(Pointer<Void> userData);
 ///
 /// A structure containing unchanging information about an open stream.
 ///
-class StreamInfo extends Struct {
+final class StreamInfo extends Struct {
   // this is struct version 1
   @Int32()
-  int structVersion;
+  external int structVersion;
 
   /// The input latency of the stream in seconds. This value provides the most
   /// accurate estimate of input latency available to the implementation. It may
   /// differ significantly from the suggestedLatency value passed to OpenStream().
   /// The value of this field will be zero (0.) for output-only streams.
   @Double()
-  double inputLatency;
+  external double inputLatency;
 
   /// The output latency of the stream in seconds. This value provides the most
   /// accurate estimate of output latency available to the implementation. It may
   /// differ significantly from the suggestedLatency value passed to OpenStream().
   /// The value of this field will be zero (0.) for input-only streams.
   @Double()
-  double outputLatency;
+  external double outputLatency;
 
   /// The sample rate of the stream in Hertz (samples per second). In cases
   /// where the hardware sample rate is inaccurate and PortAudio is aware of it,
@@ -1721,5 +1725,5 @@ class StreamInfo extends Struct {
   /// rate is not available, this field will have the same value as the sampleRate
   /// parameter passed to OpenStream().
   @Double()
-  double sampleRate;
+  external double sampleRate;
 }

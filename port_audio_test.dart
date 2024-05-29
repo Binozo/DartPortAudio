@@ -1,8 +1,9 @@
-import 'package:port_audio/port_audio.dart';
 import 'package:test/test.dart';
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+
+import 'port_audio.dart';
 
 void main() {
   group('Port Audio Tests', () {
@@ -17,7 +18,7 @@ void main() {
 
     Pointer<Pointer<Void>> getAnOpenStream() {
       var stream =
-          Pointer<Pointer<Void>>.fromAddress(allocate<IntPtr>().address);
+          Pointer<Pointer<Void>>.fromAddress(calloc.allocate<IntPtr>(32).address);
       var numInputChannels = 2;
       var numOutputChannels = 2;
       var sampleFormat = SampleFormat.int16;
@@ -40,7 +41,7 @@ void main() {
     }
 
     void closeAStream(Pointer<Pointer<Void>> stream) {
-      free(stream);
+      calloc.free(stream);
     }
 
     test('getVersionText', () {
@@ -50,16 +51,16 @@ void main() {
 
     test('getVersion', () {
       var version = PortAudio.getVersion();
-      expect(version, equals(0x130600));
+      expect(version, equals(0x130700));
     });
 
     test('getVersionInfo', () {
       var versionInfo = PortAudio.getVersionInfo();
       expect(versionInfo.versionMajor, equals(0x13));
-      expect(versionInfo.versionMinor, equals(0x06));
+      expect(versionInfo.versionMinor, equals(0x07));
       expect(versionInfo.versionSubMinor, equals(0x0));
       expect(versionInfo.versionText,
-          equals('PortAudio V19.6.0-devel, revision unknown'));
+          equals('PortAudio V19.7.0-devel, revision unknown'));
       expect(versionInfo.versionControlRevision, equals('unknown'));
     });
 
@@ -146,7 +147,7 @@ void main() {
       var deviceOutputIndex = PortAudio.getDefaultOutputDevice();
       var deviceOutputInfo = PortAudio.getDeviceInfo(deviceOutputIndex);
 
-      var outputParameters = allocate<StreamParameters>();
+      var outputParameters = calloc.allocate<StreamParameters>(32);
       outputParameters.ref
         ..device = deviceOutputIndex
         ..channelCount = deviceOutputInfo.maxOutputChannels
@@ -157,15 +158,15 @@ void main() {
       var supported =
           PortAudio.isFormatSupported(null, outputParameters, 44100.0);
 
-      free(outputParameters);
+      calloc.free(outputParameters);
       expect(supported, equals(SampleFormat.formatIsSupported));
     });
 
     test('openStream', () {
       var stream =
-          Pointer<Pointer<Void>>.fromAddress(allocate<IntPtr>().address);
+          Pointer<Pointer<Void>>.fromAddress(calloc.allocate<IntPtr>(32).address);
 
-      var inputParameters = allocate<StreamParameters>();
+      var inputParameters = calloc.allocate<StreamParameters>(32);
       inputParameters.ref
         ..device = 0
         ..channelCount = 2
@@ -178,7 +179,7 @@ void main() {
       var framesPerBuffer = 2;
       var streamFlags = StreamFlags.noFlag;
 
-      var userData = allocate<Uint8>(count: 32);
+      var userData = calloc.allocate<Uint8>(32);
 
       var result = PortAudio.openStream(
           stream,
@@ -192,16 +193,16 @@ void main() {
 
       PortAudio.closeStream(stream);
 
-      free(inputParameters);
-      free(userData);
-      free(stream);
+      calloc.free(inputParameters);
+      calloc.free(userData);
+      calloc.free(stream);
 
       expect(result, equals(ErrorCode.noError));
     });
 
     test('openDefaultStream', () {
       var stream =
-          Pointer<Pointer<Void>>.fromAddress(allocate<IntPtr>().address);
+          Pointer<Pointer<Void>>.fromAddress(calloc.allocate<IntPtr>(32).address);
 
       var numInputChannels = 2;
       var numOutputChannels = 2;
@@ -209,7 +210,7 @@ void main() {
       var sampleRate = 32000.0;
       var framesPerBuffer = 4;
 
-      var userData = allocate<Uint8>(count: 32);
+      var userData = calloc.allocate<Uint8>(32);
 
       var result = PortAudio.openDefaultStream(
           stream,
@@ -221,8 +222,8 @@ void main() {
           null,
           userData.cast<Void>());
 
-      free(userData);
-      free(stream);
+      calloc.free(userData);
+      calloc.free(stream);
 
       expect(result, equals(ErrorCode.noError));
     });
@@ -358,7 +359,7 @@ void main() {
       var result = PortAudio.startStream(stream);
       expect(result, equals(ErrorCode.noError));
 
-      var buffer = allocate<Uint8>(count: 32);
+      var buffer = calloc.allocate<Uint8>(32);
       var frames = 2;
 
       result = PortAudio.readStream(stream, buffer.cast<Void>(), frames);
@@ -367,7 +368,7 @@ void main() {
       result = PortAudio.closeStream(stream);
       expect(result, equals(ErrorCode.noError));
 
-      free(buffer);
+      calloc.free(buffer);
       closeAStream(stream);
     });
 
@@ -377,7 +378,7 @@ void main() {
       var result = PortAudio.startStream(stream);
       expect(result, equals(ErrorCode.noError));
 
-      var buffer = allocate<Uint8>();
+      var buffer = calloc.allocate<Uint8>(32);
       var frames = 2;
 
       result = PortAudio.writeStream(stream, buffer.cast<Void>(), frames);
@@ -386,7 +387,7 @@ void main() {
       result = PortAudio.closeStream(stream);
       expect(result, equals(ErrorCode.noError));
 
-      free(buffer);
+      calloc.free(buffer);
       closeAStream(stream);
     });
 
