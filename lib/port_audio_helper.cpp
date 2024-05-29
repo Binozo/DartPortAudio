@@ -1,5 +1,5 @@
 // port_audio_helper.cpp : This file contains helper functions
-#include "pch.h"
+// #include "pch.h"
 #include <iostream>
 #include <mutex>      
 #include <condition_variable> 
@@ -61,9 +61,9 @@ static int Pah_StreamCallback(const void* input,
     dartCObject.value.as_array.length = 7;
     dartCObject.value.as_array.values = dartCObjectPtr;
 
-    if (!Dart_PostCObject(Pah_StreamCallbackSendPort, &dartCObject)) {
+    /*if (!Dart_PostCObject(Pah_StreamCallbackSendPort, &dartCObject)) {
         std::cout << "Pah_StreamCallback: Failed to post object to dart\n";
-    }
+    }*/
 
     // Wait for result to be set in the PahSetStreamResult function    
     Pah_StreamCallbackReady = false;
@@ -116,9 +116,9 @@ static void Pah_StreamFinishedCallback(void* userData) {
     dartCObject.value.as_array.length = 2;
     dartCObject.value.as_array.values = dartCObjectPtr;
 
-    if (!Dart_PostCObject(Pah_StreamFinishedCallbackSendPort, &dartCObject)) {
+    /*if (!Dart_PostCObject(Pah_StreamFinishedCallbackSendPort, &dartCObject)) {
         std::cout << "Pah_StreamFinishedCallback: Failed to post object to dart\n";
-    }
+    }*/
 }
 
 /*
